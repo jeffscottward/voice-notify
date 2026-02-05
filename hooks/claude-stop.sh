@@ -7,6 +7,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VOICE_SCRIPT="${SCRIPT_DIR}/../scripts/voice-notify.sh"
 
+# Source sanitization library
+source "${SCRIPT_DIR}/../scripts/sanitize.sh"
+
 # Read hook data from stdin (JSON with transcript_path, etc.)
 HOOK_DATA=$(cat)
 
@@ -18,13 +21,17 @@ MESSAGE="Done"
 
 if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" ]]; then
     # Get the last assistant response from transcript
-    # Look for <!-- VOICE: ... --> marker in the last few lines
     LAST_CONTENT=$(tail -100 "$TRANSCRIPT_PATH" 2>/dev/null || echo "")
 
     # Extract voice marker if present
     if echo "$LAST_CONTENT" | grep -q '<!-- VOICE:'; then
-        # Extract the content between <!-- VOICE: and -->
         MESSAGE=$(echo "$LAST_CONTENT" | grep -o '<!-- VOICE:[^>]*-->' | tail -1 | sed 's/<!-- VOICE: *\(.*\) *-->/\1/' | sed 's/^ *//;s/ *$//')
+    else
+        # Fallback: extract raw text and find first sentence
+        RAW_TEXT=$(echo "$LAST_CONTENT" | grep -o '"text":"[^"]*"' | tail -1 | sed 's/"text":"//;s/"$//' | sed 's/\\n/ /g' | sed 's/\\"/"/g' || echo "")
+        if [[ -n "$RAW_TEXT" ]]; then
+            MESSAGE=$(extract_first_sentence "$RAW_TEXT")
+        fi
     fi
 fi
 

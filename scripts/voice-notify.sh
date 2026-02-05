@@ -1,8 +1,13 @@
 #!/bin/bash
 # voice-notify.sh - Cross-platform TTS wrapper
-# v1.0: macOS + Linux support
+# v1.1: macOS + Linux support, text sanitization
 
 set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source sanitization library
+source "${SCRIPT_DIR}/sanitize.sh"
 
 TEXT="${1:-Done}"
 
@@ -18,6 +23,11 @@ if [[ "$TEXT" == "muted" ]]; then
     TEXT="Voice muted"
 elif [[ "$TEXT" == "voice enabled" ]]; then
     rm -f "$MUTE_FILE"
+fi
+
+# Sanitize text for speech (skip for simple control messages)
+if [[ "$TEXT" != "Done" && "$TEXT" != "Voice muted" && "$TEXT" != "voice enabled" ]]; then
+    TEXT=$(sanitize_for_speech "$TEXT")
 fi
 
 # Detect OS and use appropriate TTS

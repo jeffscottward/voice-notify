@@ -68,5 +68,6 @@ Or install for a specific agent:
 
 1. A hook triggers after the agent completes a response
 2. The hook script extracts the `<!-- VOICE: ... -->` marker from the response
-3. The cross-platform TTS script speaks the extracted text
-4. If no marker is found, it speaks a default "Done" message
+3. If no marker is found, an intelligent fallback extracts the first natural sentence (stopping at `.`, `!`, `?`, `:`, `;`, paragraph breaks, or list starts)
+4. All text is automatically sanitized before speech: URLs, file paths, git SHAs, API keys, base64 blobs, and code blocks are replaced with speakable descriptions
+5. The cross-platform TTS script speaks the final text
