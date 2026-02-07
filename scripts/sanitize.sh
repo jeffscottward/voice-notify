@@ -15,8 +15,8 @@ text = sys.stdin.read()
 
 # Strip code blocks
 text = re.sub(r'\`\`\`[\s\S]*?\`\`\`', '', text)
-# Strip inline code
-text = re.sub(r'\`[^\`]*\`', '', text)
+# Keep inline code content (strip backticks only)
+text = re.sub(r'\`([^\`]*)\`', r'\1', text)
 # Replace URLs with 'a link'
 text = re.sub(r'https?://\S+', 'a link', text)
 # Replace API key patterns (before hash detection to avoid partial matches)
@@ -61,7 +61,7 @@ if not text:
 
 # Strip code blocks
 text = re.sub(r'\`\`\`[\s\S]*?\`\`\`', '', text)
-text = re.sub(r'\`[^\`]*\`', '', text)
+text = re.sub(r'\`([^\`]*)\`', r'\1', text)
 text = text.strip()
 
 if not text:
